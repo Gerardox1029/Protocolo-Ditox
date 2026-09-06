@@ -1,24 +1,31 @@
+using System.Collections;
 using UnityEngine;
 
 [RequireComponent(typeof(Rigidbody2D))]
 public class BombController : MonoBehaviour
 {
+    [Header("Configuración de Ajuste Inicial")]
+    public float tiempoEsperaActivacionColision = 0.15f; 
+
     [Header("Configuración de Rotación")]
     public float velocidadGiro = 200f;
     public float anguloFinalZ = -90f;
 
-    [Header("Efectos de Sonido")]
-    public AudioClip sonidoCaida;       // Arrastra aquí el sonido de la bomba cayendo
+    [Header("Efectos de Explosión y Sonido")]
+    public GameObject prefabExplosion; // <--- Arrastra aquí tu Prefab_Explosion
+    public AudioClip sonidoCaida;       
     [Range(0f, 2f)] public float volumenCaida = 1f;
 
-    public AudioClip sonidoExplosion;   // El sonido de impacto que ya tenías
+    public AudioClip sonidoExplosion;   
     [Range(0f, 3f)] public float volumenExplosion = 2f;
     
     [Header("Efectos de Impacto")]
     public float intensidadTemblor = 0.15f;
     public float duracionTemblor = 0.2f;
+    public float radioExplosion = 6f; 
 
     private Rigidbody2D rb;
+    private Collider2D col;
     private AudioSource audioCaidaSource;
     private bool yaColisiono = false;
 
@@ -30,16 +37,31 @@ public class BombController : MonoBehaviour
     void Start()
     {
         rb = GetComponent<Rigidbody2D>();
+        col = GetComponent<Collider2D>();
 
-        // Reproducir sonido de caída en bucle al nacer la bomba
+        if (col != null)
+        {
+            col.enabled = false;
+            StartCoroutine(ActivarColisionRutina());
+        }
+
         if (sonidoCaida != null)
         {
             audioCaidaSource = gameObject.AddComponent<AudioSource>();
             audioCaidaSource.clip = sonidoCaida;
             audioCaidaSource.volume = volumenCaida;
-            audioCaidaSource.spatialBlend = 0f; // Sonido 2D plano para que se escuche bien
-            audioCaidaSource.loop = true;      // Se repite mientras cae
+            audioCaidaSource.spatialBlend = 0f; 
+            audioCaidaSource.loop = true;      
             audioCaidaSource.Play();
+        }
+    }
+
+    IEnumerator ActivarColisionRutina()
+    {
+        yield return new WaitForSeconds(tiempoEsperaActivacionColision);
+        if (col != null)
+        {
+            col.enabled = true;
         }
     }
 
@@ -54,7 +76,14 @@ public class BombController : MonoBehaviour
         if (yaColisiono) return;
         yaColisiono = true;
 
-        // 1. Reproducir sonido de explosión 2D plano
+        // 1. Instanciar el efecto de partículas de explosión
+        if (prefabExplosion != null)
+        {
+            GameObject explosion = Instantiate(prefabExplosion, transform.position, Quaternion.identity);
+            Destroy(explosion, 2f);
+        }
+
+        // 2. Sonido de explosión 2D plano
         if (sonidoExplosion != null)
         {
             GameObject tempAudio = new GameObject("TempAudio_Explosion");
@@ -66,14 +95,29 @@ public class BombController : MonoBehaviour
             Destroy(tempAudio, sonidoExplosion.length);
         }
 
-        // 2. Temblor de cámara
+        // 3. Temblor de cámara
         CameraShake camaraScript = Camera.main.GetComponent<CameraShake>();
         if (camaraScript != null)
         {
             camaraScript.IniciarTemblor(duracionTemblor, intensidadTemblor);
         }
 
-        // 3. Destruir la bomba (esto borra automáticamente el sonido de caída que tenía integrado)
+        // 4. Daño / Parpadeo al jugador si está cerca
+        GameObject jugador = GameObject.FindGameObjectWithTag("Player");
+        if (jugador != null)
+        {
+            float distancia = Vector2.Distance(transform.position, jugador.transform.position);
+            if (distancia <= radioExplosion)
+            {
+                PlayerMovement playerScript = jugador.GetComponent<PlayerMovement>();
+                if (playerScript != null)
+                {
+                    playerScript.ActivarParpadeo();
+                }
+            }
+        }
+
+        // 5. Destruir la bomba
         Destroy(gameObject);
     }
 }

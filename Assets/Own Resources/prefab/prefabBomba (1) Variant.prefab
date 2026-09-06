@@ -78,11 +78,14 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ea50742a184ba499db50ea1ca8ade733, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::BombController
+  tiempoEsperaActivacionColision: 0.15
   velocidadGiro: 50
   anguloFinalZ: -120
+  prefabExplosion: {fileID: 3548466304644826981, guid: 33e2138d18fb6cae6b7a8818fdd05e60, type: 3}
   sonidoCaida: {fileID: 8300000, guid: d762bef2982d39d7f91e687c95ff5883, type: 3}
   volumenCaida: 0.025
   sonidoExplosion: {fileID: 8300000, guid: 4849f311d1d62231c9284e0f3c431d47, type: 3}
-  volumenExplosion: 2
+  volumenExplosion: 0.941
   intensidadTemblor: 0.15
-  duracionTemblor: 0.2
+  duracionTemblor: 0.3
+  radioExplosion: 6

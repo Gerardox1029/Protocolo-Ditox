@@ -68,7 +68,7 @@ public class PlaneController : MonoBehaviour
         }
 
         // Si el avión sale de la pantalla, se reinicia y empieza su cuenta atrás
-        if ((direccion == 1 && transform.position.x > 25f) || (direccion == -1 && transform.position.x < -25f))
+        if ((direccion == 1 && transform.position.x > 35f) || (direccion == -1 && transform.position.x < -35f))
         {
             enVuelo = false;
             transform.position = posicionInicial;
